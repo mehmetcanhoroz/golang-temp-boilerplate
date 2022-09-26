@@ -1,0 +1,45 @@
+version: '3.9'
+services:
+  db:
+    image: mysql:8.0.30
+    container_name: mysql-digital-marketplace
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'digital-marketplace'
+      # So you don't have to use root, but you can if you like
+      MYSQL_USER: 'golang'
+      # You can use whatever password you like
+      MYSQL_PASSWORD: 'example'
+      # Password for root access
+      MYSQL_ROOT_PASSWORD: 'example'
+    ports:
+      # <Port exposed> : < MySQL Port running inside container>
+      - '3306:3306'
+    expose:
+      # Opens port 3306 on the container
+      - '3306'
+      # Where our data will be persisted
+    volumes:
+      - mysql-digital-marketplace-volume:/var/lib/mysql
+
+  redis:
+    image: docker.io/bitnami/redis:7.0
+    container_name: redis-digital-marketplace
+    environment:
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      #- ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
+      - REDIS_PASSWORD=example
+    ports:
+      - '6379:6379'
+    volumes:
+      - 'redis_data:/bitnami/redis/data'
+
+# Names our volume
+volumes:
+  redis_data:
+    driver: local
+    name: redis_data
+  mysql-digital-marketplace-volume:
+    driver: local
+    name: mysql-digital-marketplace-volume
