@@ -7,7 +7,7 @@ import (
 )
 
 type CategoryRepository interface {
-	FetchAllCategories() ([]models.Category, *apperrors.AppError)
+	FetchAllParentCategories() ([]models.Category, *apperrors.AppError)
 	GetCategoryWithItems(id uint64) (models.Category, *apperrors.AppError)
 }
 
@@ -15,7 +15,7 @@ type categoryRepository struct {
 	database *gorm.DB
 }
 
-func (repository categoryRepository) FetchAllCategories() ([]models.Category, *apperrors.AppError) {
+func (repository categoryRepository) FetchAllParentCategories() ([]models.Category, *apperrors.AppError) {
 	var categories []models.Category
 
 	repository.database.Where("parent_category_id IS NULL").Find(&categories)

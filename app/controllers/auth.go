@@ -11,6 +11,7 @@ import (
 type AuthController interface {
 	Register(*gin.Context)
 	Login(*gin.Context)
+	GetLoggedInUser(*gin.Context)
 }
 
 type authController struct {
@@ -57,6 +58,39 @@ func (ctr authController) Login(c *gin.Context) {
 		c.JSON(http.StatusForbidden,
 			models.RestError{
 				Message: "Credentials are invalid!",
+			},
+		)
+		return
+	}
+
+	c.JSON(http.StatusOK,
+		models.RestResponse{
+			Result: a,
+		},
+	)
+	return
+}
+
+func (ctr authController) GetLoggedInUser(c *gin.Context) {
+
+	token := ctr.service.ExtractJWTToken(c)
+
+	userID, err := ctr.service.GetClaimUserIDValue(token)
+	if err != nil {
+		c.JSON(http.StatusForbidden,
+			models.RestError{
+				Message: err.RestMessage,
+			},
+		)
+		return
+	}
+
+	a, err := ctr.service.GetUserByID(userID)
+
+	if err != nil {
+		c.JSON(http.StatusForbidden,
+			models.RestError{
+				Message: err.RestMessage,
 			},
 		)
 		return

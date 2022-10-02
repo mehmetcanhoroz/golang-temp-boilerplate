@@ -7,7 +7,7 @@ import (
 )
 
 type CategoryService interface {
-	AllCategories() (interface{}, *apperrors.AppError)
+	AllParentCategories() (interface{}, *apperrors.AppError)
 	GetCategoryWithItems(id uint64) (models.Category, *apperrors.AppError)
 }
 
@@ -21,8 +21,8 @@ func NewCategoryService(repository repository.CategoryRepository) CategoryServic
 	}
 }
 
-func (s categoryService) AllCategories() (interface{}, *apperrors.AppError) {
-	result, err := s.repository.FetchAllCategories()
+func (s categoryService) AllParentCategories() (interface{}, *apperrors.AppError) {
+	result, err := s.repository.FetchAllParentCategories()
 	return result, err
 }
 

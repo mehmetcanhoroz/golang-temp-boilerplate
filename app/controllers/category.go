@@ -25,7 +25,7 @@ func NewCategoryController(categoryService service.CategoryService) CategoryCont
 }
 
 func (ctr categoryController) GetAllCategories(c *gin.Context) {
-	result, _ := ctr.service.AllCategories()
+	result, _ := ctr.service.AllParentCategories()
 
 	c.JSON(http.StatusOK,
 		models.RestResponse{

@@ -4,12 +4,15 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/mehmetcanhoroz/digital-marketplace/repository"
 	"github.com/mehmetcanhoroz/digital-marketplace/sdk/apperrors"
 	"github.com/mehmetcanhoroz/digital-marketplace/sdk/models"
+	"github.com/mehmetcanhoroz/digital-marketplace/utils/mappers"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -17,8 +20,11 @@ const bcryptCost = 13 //Default cost 10: bcrypt.DefaultCost
 
 type AuthService interface {
 	Register(models.AuthRegisterRequest) (*models.AuthSuccessfulResponse, *apperrors.AppError)
-	Login(request models.AuthLoginRequest) (*models.AuthSuccessfulResponse, *apperrors.AppError)
-	VerifyToken(tokenString string) *apperrors.AppError
+	Login(models.AuthLoginRequest) (*models.AuthSuccessfulResponse, *apperrors.AppError)
+	GetUserByID(uint64) (*models.GetUserSuccessfulResponse, *apperrors.AppError)
+	VerifyToken(string) *apperrors.AppError
+	ExtractJWTToken(*gin.Context) string
+	GetClaimUserIDValue(string) (uint64, *apperrors.AppError)
 }
 
 type authService struct {
@@ -89,6 +95,17 @@ func (s authService) Login(loginRequest models.AuthLoginRequest) (*models.AuthSu
 	return &token, nil
 }
 
+func (s authService) GetUserByID(userID uint64) (*models.GetUserSuccessfulResponse, *apperrors.AppError) {
+	user, err := s.repository.FindByID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	responseUser := mappers.MapUserModelToGetUserSuccessfulResponse(*user)
+
+	return &responseUser, nil
+}
+
 func (s authService) HashPassword(password string) (string, *apperrors.AppError) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcryptCost) //Default cost 10: bcrypt.DefaultCost
 	if err != nil {
@@ -135,4 +152,33 @@ func (s authService) VerifyToken(tokenString string) *apperrors.AppError {
 		return apperrors.NewAppError("Token is invalid.", err)
 	}
 	return nil
+}
+
+func (s authService) ExtractJWTToken(c *gin.Context) string {
+	bearerToken := c.Request.Header.Get("Authorization")
+	if len(strings.Split(bearerToken, " ")) == 2 {
+		return strings.Split(bearerToken, " ")[1]
+	}
+	return ""
+}
+
+func (s authService) GetClaimUserIDValue(tokenString string) (uint64, *apperrors.AppError) {
+	token, err := jwt.Parse(tokenString,
+		func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
+			return []byte(os.Getenv("API_SECRET")), nil
+		})
+	if err != nil {
+		return 0, apperrors.NewAppError("", err)
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if ok && token.Valid {
+		tag := uint64(claims["u"].(float64))
+		return tag, nil
+	}
+
+	return 0, apperrors.NewAppError("User ID could not be extracted from jwt!", nil)
 }

@@ -25,6 +25,15 @@ type User struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
+type GetUserSuccessfulResponse struct {
+	ID       uint64 `json:"id" gorm:"primaryKey"`
+	FullName string `gorm:"not null"`
+	Phone    string `gorm:"unique;not null"`
+	Email    string `gorm:"unique;not null"`
+	Username string `gorm:"index;unique;not null"`
+	Birthday sql.NullTime
+}
+
 func (User) TableName() string {
 	return UserModelTableName
 }

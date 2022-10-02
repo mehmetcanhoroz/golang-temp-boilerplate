@@ -7,7 +7,7 @@ type AppError struct {
 
 func NewAppError(restMessage string, err error) *AppError {
 
-	if err == nil {
+	if restMessage == "" && err == nil {
 		return nil
 	}
 	return &AppError{

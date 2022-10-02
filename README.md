@@ -5,3 +5,11 @@ I know it needs some improvments but when companies want to send case, they can 
 
 Thanks.
 Will provide more commits.
+
+
+## Features:
+- JWT
+- Gorm
+- GinGonic
+- MySQL
+- Docker

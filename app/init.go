@@ -58,7 +58,7 @@ func (a Application) Start() {
 	itemController := controllers.NewItemController(itemService)
 	itemRoute := publicRoute.Group("/items")
 	itemRoute.GET("", itemController.GetAllItems)
-	itemRoute.Use(middlewareService.ShouldBeAuthenticated()).GET("/user/:username", itemController.GetAllItems)
+	itemRoute.GET("/user/:username", itemController.GetAllItems)
 
 	categoryController := controllers.NewCategoryController(categoryService)
 	categoryRoute := publicRoute.Group("/categories")
@@ -69,6 +69,9 @@ func (a Application) Start() {
 	authRoute := publicRoute.Group("/auth")
 	authRoute.POST("/register", authController.Register)
 	authRoute.POST("/login", authController.Login)
+
+	accountRoute := publicRoute.Group("/account")
+	accountRoute.Use(middlewareService.ShouldBeAuthenticated()).GET("/me", authController.GetLoggedInUser)
 
 	err = r.Run(":8000")
 	if err != nil {

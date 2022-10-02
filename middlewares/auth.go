@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mehmetcanhoroz/digital-marketplace/sdk/models"
@@ -19,19 +18,11 @@ type middlewareService struct {
 	categoryService service.CategoryService
 }
 
-func (s middlewareService) ExtractJWTToken(c *gin.Context) string {
-	bearerToken := c.Request.Header.Get("Authorization")
-	if len(strings.Split(bearerToken, " ")) == 2 {
-		return strings.Split(bearerToken, " ")[1]
-	}
-	return ""
-}
-
 func (s middlewareService) ShouldBeAuthenticated() gin.HandlerFunc {
 	//func verifyJWT(endpointHandler func(writer http.ResponseWriter, request *http.Request)) http.HandlerFunc {
 	return func(c *gin.Context) {
 		//err := token.TokenValid(c)
-		tokenString := s.ExtractJWTToken(c)
+		tokenString := s.authService.ExtractJWTToken(c)
 
 		err := s.authService.VerifyToken(tokenString)
 		if err != nil {
